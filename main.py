@@ -1,87 +1,125 @@
-import json 
-import os
-
-FILE_NAME = "tasks.json"
-
-def load_tasks():
-    if not os.path.exists(FILE_NAME):
-        return[]
-
-    with open(FILE_NAME,"r",encoding="utf-8") as file:
-        return json.load(file)
-def save_tasks(tasks):
-    with open(FILE_NAME,"w",encoding="utf-8") as file:
-        json.dump(tasks,file,indent=4)
+from db import (
+    create_table,
+    add_task_db,
+    list_tasks_db,
+    get_task_by_id,
+    complete_task_db,
+    delete_task_db
+)
 
 
 def show_menu():
-    print("\nTask Tracker")
-    print("1. Add Task")
-    print("2. List Tasks")
-    print("3. Complete Task")
-    print("4. Delete Task")  
-    print("5. Exit")    
+    print("\n--- TASK TRACKER ---")
+    print("1. Add task")
+    print("2. List tasks")
+    print("3. Complete task")
+    print("4. Delete task")
+    print("5. Exit")
+
+
+def add_task():
+    title = input("Enter task title: ").strip()
+
+    if not title:
+        print("Task title cannot be empty.")
+        return
+
+    add_task_db(title)
+    print("Task added successfully.")
+
+
+def list_tasks():
+    tasks = list_tasks_db()
+
+    if not tasks:
+        print("No tasks found.")
+        return
+
+    print("\n--- TASK LIST ---")
+    for task in tasks:
+        task_id, title, completed = task
+        status = "[x]" if completed == 1 else "[ ]"
+        print(f"{task_id}. {status} {title}")
+
+
+def complete_task():
+    tasks = list_tasks_db()
+
+    if not tasks:
+        print("No tasks to complete.")
+        return
+
+    list_tasks()
+
+    try:
+        task_id = int(input("Enter task id to mark as done: "))
+    except ValueError:
+        print("Please enter a valid number.")
+        return
+
+    task = get_task_by_id(task_id)
+
+    if task is None:
+        print("Task not found.")
+        return
+
+    if task[2] == 1:
+        print("Task is already completed.")
+        return
+
+    complete_task_db(task_id)
+    print("Task marked as completed.")
+
+
+def delete_task():
+    tasks = list_tasks_db()
+
+    if not tasks:
+        print("No tasks to delete.")
+        return
+
+    list_tasks()
+
+    try:
+        task_id = int(input("Enter task id to delete: "))
+    except ValueError:
+        print("Please enter a valid number.")
+        return
+
+    task = get_task_by_id(task_id)
+
+    if task is None:
+        print("Task not found.")
+        return
+
+    delete_task_db(task_id)
+    print("Task deleted successfully.")
 
 
 def main():
-    tasks= load_tasks()
-
+    create_table()
 
     while True:
         show_menu()
-
-        def get_next_id(tasks):
-            if not tasks:
-                return 1
-            
-            max_id = max(task["id"] for task in tasks)
-            return max_id +1
-
-        def add_task(tasks):
-            title = input ("Enter task title:").strip()
-
-            if not title:
-                print("Task title cannot be empty.")
-                return
-
-            new_task = {
-                "id": get_next_id(tasks),
-                "title": title,
-                "completed": False
-            }    
-
-            tasks.append(new_task)
-            print(f"Task '{title}' added successfully.")
-
-
-
-
-
-
-
-
-
-        choice = input("Enter your choice: ")
+        choice = input("Choose an option: ")
 
         if choice == "1":
-            add_task(tasks)
+            add_task()
         elif choice == "2":
-            pass    
+            list_tasks()
         elif choice == "3":
-            pass
+            complete_task()
         elif choice == "4":
-            pass
+            delete_task()
         elif choice == "5":
-            save_tasks(tasks)
-            print("Goodbye!")
+            print("Goodbye.")
             break
         else:
-            print("Invalid choice. Please try again.")
-
+            print("Invalid choice.")
 
 
 if __name__ == "__main__":
-    main()                  
+    main()       
 
 
         
